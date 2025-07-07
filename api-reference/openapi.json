@@ -1,216 +1,331 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "apifordevs – v1",
+    "version": "1.0.0",
+    "description": "Programmatic API for media conversion, Moondream vision tasks and (soon) Whisper transcript."
   },
   "servers": [
-    {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
-    }
+    { "url": "https://<your-domain>/api/v1" }
   ],
   "paths": {
-    "/plants": {
-      "get": {
-        "description": "Returns all plants from the system that the user has access to",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
-            "schema": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
-                  }
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
+    "/convert": {
       "post": {
-        "description": "Creates a new plant in the store",
+        "summary": "Convert a media file to another format",
+        "tags": ["convert"],
+        "operationId": "convertMedia",
+        "security": [{ "apiKey": [] }],
         "requestBody": {
-          "description": "Plant to add to the store",
+          "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
+              "schema": { "$ref": "#/components/schemas/ConvertRequest" }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
           "200": {
-            "description": "plant response",
+            "description": "Conversion completed (sync) or task started (async)",
             "content": {
               "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
+                "schema": { "$ref": "#/components/schemas/ConvertResponse" }
               }
             }
           },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
+          "4XX": { "$ref": "#/components/responses/Error" },
+          "5XX": { "$ref": "#/components/responses/Error" }
         }
       }
     },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
+
+    "/moondream/caption": {
       "post": {
-        "description": "Information about a new plant added to the store",
+        "summary": "Generate an image caption",
+        "tags": ["moondream"],
+        "operationId": "captionImage",
+        "security": [{ "apiKey": [] }],
         "requestBody": {
-          "description": "Plant added to the store",
+          "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
+              "schema": { "$ref": "#/components/schemas/CaptionRequest" }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
+            "description": "Caption generated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CaptionResponse" }
+              }
+            }
+          },
+          "4XX": { "$ref": "#/components/responses/Error" },
+          "5XX": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+
+    "/moondream/detect": {
+      "post": {
+        "summary": "Detect objects present in an image",
+        "tags": ["moondream"],
+        "operationId": "detectObjects",
+        "security": [{ "apiKey": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DetectRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Objects detected",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DetectResponse" }
+              }
+            }
+          },
+          "4XX": { "$ref": "#/components/responses/Error" },
+          "5XX": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+
+    "/moondream/point": {
+      "post": {
+        "summary": "Locate an object inside an image",
+        "tags": ["moondream"],
+        "operationId": "pointObject",
+        "security": [{ "apiKey": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PointRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Points returned",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PointResponse" }
+              }
+            }
+          },
+          "4XX": { "$ref": "#/components/responses/Error" },
+          "5XX": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+
+    "/moondream/query": {
+      "post": {
+        "summary": "Ask a question about an image",
+        "tags": ["moondream"],
+        "operationId": "queryImage",
+        "security": [{ "apiKey": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/QueryRequest" }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Answer returned",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/QueryResponse" }
+              }
+            }
+          },
+          "4XX": { "$ref": "#/components/responses/Error" },
+          "5XX": { "$ref": "#/components/responses/Error" }
+        }
+      }
+    },
+
+    "/transcript": {
+      "post": {
+        "summary": "Transcribe an audio file (coming soon)",
+        "tags": ["transcript"],
+        "operationId": "transcribeAudio",
+        "security": [{ "apiKey": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TranscriptRequest" }
+            }
+          }
+        },
+        "responses": {
+          "501": {
+            "description": "Not implemented yet",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/responses/Error/content/application~1json/schema" }
+              }
+            }
           }
         }
       }
     }
   },
+
   "components": {
+    "securitySchemes": {
+      "apiKey": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "ConvertRequest": {
         "type": "object",
+        "required": ["input_type", "output_type"],
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
-          }
+          "input_type": { "type": "string", "example": "mov" },
+          "output_type": { "type": "string", "example": "mp4" },
+          "media_base64": { "type": "string", "description": "base64-encoded file" },
+          "media_url": { "type": "string", "format": "uri" },
+          "webhook_url": { "type": "string", "format": "uri" }
         }
       },
-      "NewPlant": {
-        "allOf": [
+      "ConvertResponse": {
+        "oneOf": [
           {
-            "$ref": "#/components/schemas/Plant"
+            "type": "object",
+            "description": "Async call",
+            "properties": {
+              "success": { "type": "boolean", "example": true },
+              "process": { "type": "string", "enum": ["running"] }
+            }
           },
           {
-            "required": [
-              "id"
-            ],
             "type": "object",
+            "description": "Sync result",
             "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
+              "url": { "type": "string", "format": "uri" },
+              "size": { "type": "integer" }
             }
           }
         ]
       },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
+
+      "CaptionRequest": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "image_base64": { "type": "string" },
+          "image_url": { "type": "string", "format": "uri" },
+          "length": { "type": "string", "enum": ["short", "normal"], "default": "normal" },
+          "webhook_url": { "type": "string", "format": "uri" }
+        }
+      },
+      "CaptionResponse": {
+        "type": "object",
+        "properties": { "caption": { "type": "string" } }
+      },
+
+      "DetectRequest": {
+        "type": "object",
+        "required": ["object"],
+        "properties": {
+          "image_base64": { "type": "string" },
+          "image_url": { "type": "string", "format": "uri" },
+          "object": { "type": "string", "example": "person" },
+          "webhook_url": { "type": "string", "format": "uri" }
+        }
+      },
+      "DetectResponse": {
         "type": "object",
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
+          "objects": {
+            "type": "array",
+            "items": { "type": "string" }
           }
+        }
+      },
+
+      "PointRequest": {
+        "type": "object",
+        "required": ["object"],
+        "properties": {
+          "image_base64": { "type": "string" },
+          "image_url": { "type": "string", "format": "uri" },
+          "object": { "type": "string", "example": "car" },
+          "webhook_url": { "type": "string", "format": "uri" }
+        }
+      },
+      "PointResponse": {
+        "type": "object",
+        "properties": {
+          "points": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": { "type": "number" },
+                "y": { "type": "number" }
+              }
+            }
+          }
+        }
+      },
+
+      "QueryRequest": {
+        "type": "object",
+        "required": ["question"],
+        "properties": {
+          "image_base64": { "type": "string" },
+          "image_url": { "type": "string", "format": "uri" },
+          "question": { "type": "string", "example": "What color is the car?" },
+          "webhook_url": { "type": "string", "format": "uri" }
+        }
+      },
+      "QueryResponse": {
+        "type": "object",
+        "properties": { "answer": { "type": "string" } }
+      },
+
+      "TranscriptRequest": {
+        "type": "object",
+        "properties": {
+          "audio_base64": { "type": "string" },
+          "audio_url": { "type": "string", "format": "uri" },
+          "language": { "type": "string", "default": "en" },
+          "timestamps": { "type": "boolean", "default": false },
+          "webhook_url": { "type": "string", "format": "uri" }
         }
       }
     },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
+
+    "responses": {
+      "Error": {
+        "description": "Error payload",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "error": { "type": "string" },
+                "details": { "type": "object", "nullable": true }
+              }
+            }
+          }
+        }
       }
     }
   }
