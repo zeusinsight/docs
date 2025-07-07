@@ -1,331 +1,372 @@
 {
-  "openapi": "3.1.0",
+  "openapi": "3.0.0",
   "info": {
-    "title": "apifordevs – v1",
+    "title": "API for Devs",
     "version": "1.0.0",
-    "description": "Programmatic API for media conversion, Moondream vision tasks and (soon) Whisper transcript."
+    "description": "API for various development tasks including media conversion and image analysis."
   },
   "servers": [
-    { "url": "https://<your-domain>/api/v1" }
+    {
+      "url": "/api/v1"
+    }
   ],
   "paths": {
     "/convert": {
       "post": {
-        "summary": "Convert a media file to another format",
-        "tags": ["convert"],
-        "operationId": "convertMedia",
-        "security": [{ "apiKey": [] }],
+        "summary": "Convert Media",
+        "description": "Converts a media file from one format to another.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/ConvertRequest" }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "input_type": {
+                    "type": "string",
+                    "enum": ["mov", "mp3", "mp4", "wav", "webm", "m4a", "opus"]
+                  },
+                  "output_type": {
+                    "type": "string",
+                    "enum": ["mp3", "mp4", "webm"]
+                  },
+                  "media_base64": {
+                    "type": "string",
+                    "format": "byte"
+                  },
+                  "media_url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                },
+                "required": ["input_type", "output_type"]
+              }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Conversion completed (sync) or task started (async)",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/ConvertResponse" }
-              }
-            }
+            "description": "Conversion started or completed."
           },
-          "4XX": { "$ref": "#/components/responses/Error" },
-          "5XX": { "$ref": "#/components/responses/Error" }
-        }
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "422": {
+            "description": "Unsupported conversion"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
-
     "/moondream/caption": {
       "post": {
-        "summary": "Generate an image caption",
-        "tags": ["moondream"],
-        "operationId": "captionImage",
-        "security": [{ "apiKey": [] }],
+        "summary": "Caption Image",
+        "description": "Generates a caption for an image.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CaptionRequest" }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_base64": {
+                    "type": "string",
+                    "format": "byte"
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "length": {
+                    "type": "string",
+                    "enum": ["short", "normal"],
+                    "default": "normal"
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                }
+              }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Caption generated",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/CaptionResponse" }
-              }
-            }
+            "description": "Caption generated."
           },
-          "4XX": { "$ref": "#/components/responses/Error" },
-          "5XX": { "$ref": "#/components/responses/Error" }
-        }
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "502": {
+            "description": "Moondream processing failed"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
-
     "/moondream/detect": {
       "post": {
-        "summary": "Detect objects present in an image",
-        "tags": ["moondream"],
-        "operationId": "detectObjects",
-        "security": [{ "apiKey": [] }],
+        "summary": "Detect Objects",
+        "description": "Detects objects in an image.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/DetectRequest" }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_base64": {
+                    "type": "string",
+                    "format": "byte"
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "object": {
+                    "type": "string"
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                },
+                "required": ["object"]
+              }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Objects detected",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/DetectResponse" }
-              }
-            }
+            "description": "Objects detected."
           },
-          "4XX": { "$ref": "#/components/responses/Error" },
-          "5XX": { "$ref": "#/components/responses/Error" }
-        }
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "502": {
+            "description": "Moondream processing failed"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
-
     "/moondream/point": {
       "post": {
-        "summary": "Locate an object inside an image",
-        "tags": ["moondream"],
-        "operationId": "pointObject",
-        "security": [{ "apiKey": [] }],
+        "summary": "Point to Object",
+        "description": "Locates an object in an image and returns its coordinates.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/PointRequest" }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_base64": {
+                    "type": "string",
+                    "format": "byte"
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "object": {
+                    "type": "string"
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                },
+                "required": ["object"]
+              }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Points returned",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/PointResponse" }
-              }
-            }
+            "description": "Object located."
           },
-          "4XX": { "$ref": "#/components/responses/Error" },
-          "5XX": { "$ref": "#/components/responses/Error" }
-        }
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "502": {
+            "description": "Moondream processing failed"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
-
     "/moondream/query": {
       "post": {
-        "summary": "Ask a question about an image",
-        "tags": ["moondream"],
-        "operationId": "queryImage",
-        "security": [{ "apiKey": [] }],
+        "summary": "Query Image",
+        "description": "Asks a natural language question about an image.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/QueryRequest" }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "image_base64": {
+                    "type": "string",
+                    "format": "byte"
+                  },
+                  "image_url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "question": {
+                    "type": "string"
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                },
+                "required": ["question"]
+              }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Answer returned",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/schemas/QueryResponse" }
-              }
-            }
+            "description": "Answer received."
           },
-          "4XX": { "$ref": "#/components/responses/Error" },
-          "5XX": { "$ref": "#/components/responses/Error" }
-        }
+          "400": {
+            "description": "Bad Request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "402": {
+            "description": "Insufficient credits"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          },
+          "502": {
+            "description": "Moondream processing failed"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     },
-
     "/transcript": {
       "post": {
-        "summary": "Transcribe an audio file (coming soon)",
-        "tags": ["transcript"],
-        "operationId": "transcribeAudio",
-        "security": [{ "apiKey": [] }],
+        "summary": "Transcribe Audio",
+        "description": "Transcribes an audio file. This endpoint is not yet implemented.",
         "requestBody": {
           "required": true,
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/TranscriptRequest" }
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "audio_base64": {
+                    "type": "string",
+                    "format": "byte"
+                  },
+                  "audio_url": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "language": {
+                    "type": "string",
+                    "default": "en"
+                  },
+                  "timestamps": {
+                    "type": "boolean",
+                    "default": false
+                  },
+                  "webhook_url": {
+                    "type": "string",
+                    "format": "uri"
+                  }
+                }
+              }
             }
           }
         },
         "responses": {
           "501": {
-            "description": "Not implemented yet",
-            "content": {
-              "application/json": {
-                "schema": { "$ref": "#/components/responses/Error/content/application~1json/schema" }
-              }
-            }
+            "description": "Not Implemented"
           }
-        }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ]
       }
     }
   },
-
   "components": {
     "securitySchemes": {
       "apiKey": {
         "type": "apiKey",
         "in": "header",
-        "name": "X-API-Key"
-      }
-    },
-
-    "schemas": {
-      "ConvertRequest": {
-        "type": "object",
-        "required": ["input_type", "output_type"],
-        "properties": {
-          "input_type": { "type": "string", "example": "mov" },
-          "output_type": { "type": "string", "example": "mp4" },
-          "media_base64": { "type": "string", "description": "base64-encoded file" },
-          "media_url": { "type": "string", "format": "uri" },
-          "webhook_url": { "type": "string", "format": "uri" }
-        }
-      },
-      "ConvertResponse": {
-        "oneOf": [
-          {
-            "type": "object",
-            "description": "Async call",
-            "properties": {
-              "success": { "type": "boolean", "example": true },
-              "process": { "type": "string", "enum": ["running"] }
-            }
-          },
-          {
-            "type": "object",
-            "description": "Sync result",
-            "properties": {
-              "url": { "type": "string", "format": "uri" },
-              "size": { "type": "integer" }
-            }
-          }
-        ]
-      },
-
-      "CaptionRequest": {
-        "type": "object",
-        "required": [],
-        "properties": {
-          "image_base64": { "type": "string" },
-          "image_url": { "type": "string", "format": "uri" },
-          "length": { "type": "string", "enum": ["short", "normal"], "default": "normal" },
-          "webhook_url": { "type": "string", "format": "uri" }
-        }
-      },
-      "CaptionResponse": {
-        "type": "object",
-        "properties": { "caption": { "type": "string" } }
-      },
-
-      "DetectRequest": {
-        "type": "object",
-        "required": ["object"],
-        "properties": {
-          "image_base64": { "type": "string" },
-          "image_url": { "type": "string", "format": "uri" },
-          "object": { "type": "string", "example": "person" },
-          "webhook_url": { "type": "string", "format": "uri" }
-        }
-      },
-      "DetectResponse": {
-        "type": "object",
-        "properties": {
-          "objects": {
-            "type": "array",
-            "items": { "type": "string" }
-          }
-        }
-      },
-
-      "PointRequest": {
-        "type": "object",
-        "required": ["object"],
-        "properties": {
-          "image_base64": { "type": "string" },
-          "image_url": { "type": "string", "format": "uri" },
-          "object": { "type": "string", "example": "car" },
-          "webhook_url": { "type": "string", "format": "uri" }
-        }
-      },
-      "PointResponse": {
-        "type": "object",
-        "properties": {
-          "points": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "x": { "type": "number" },
-                "y": { "type": "number" }
-              }
-            }
-          }
-        }
-      },
-
-      "QueryRequest": {
-        "type": "object",
-        "required": ["question"],
-        "properties": {
-          "image_base64": { "type": "string" },
-          "image_url": { "type": "string", "format": "uri" },
-          "question": { "type": "string", "example": "What color is the car?" },
-          "webhook_url": { "type": "string", "format": "uri" }
-        }
-      },
-      "QueryResponse": {
-        "type": "object",
-        "properties": { "answer": { "type": "string" } }
-      },
-
-      "TranscriptRequest": {
-        "type": "object",
-        "properties": {
-          "audio_base64": { "type": "string" },
-          "audio_url": { "type": "string", "format": "uri" },
-          "language": { "type": "string", "default": "en" },
-          "timestamps": { "type": "boolean", "default": false },
-          "webhook_url": { "type": "string", "format": "uri" }
-        }
-      }
-    },
-
-    "responses": {
-      "Error": {
-        "description": "Error payload",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "error": { "type": "string" },
-                "details": { "type": "object", "nullable": true }
-              }
-            }
-          }
-        }
+        "name": "x-api-key"
       }
     }
   }
